@@ -22,7 +22,7 @@ def list_todos() -> list[str]:
     return [todo.strip() for todo in todos]
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Add a todo item to the todo list.")
     parser.add_argument("todo", type=str, nargs="?", help="The todo item to add.")
     parser.add_argument(
@@ -47,3 +47,7 @@ if __name__ == "__main__":
                 print(todo)
         else:
             print("No todos found.")
+
+
+if __name__ == "__main__":
+    main()
