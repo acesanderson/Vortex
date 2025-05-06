@@ -7,6 +7,8 @@ Motivation for this project:
 - This is "building the airplane as we are flying it" and a new approach to work. The idea here is that I spend 20% of my work day editing my work environment, with outsize performance benefits of 50%.
 
 ### Metalearning goals
+- productivity theory, particulary in relation to what "works" for me -- i.e. NOT GTD, but zettelkasten/obsidian
+ - lean into the WHY of certain tasks that get delayed or not completed
 - click CLI framework
 
 ### Use cases

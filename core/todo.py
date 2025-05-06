@@ -1,8 +1,10 @@
 from pathlib import Path
 from pydantic import BaseModel, Field
 import argparse, sys
-from typing import Optional
+from typing import Optional, Any
 from enum import Enum
+from uuid import uuid4, UUID
+
 from rich.console import Console
 
 dir_path = Path(__file__).parent
@@ -52,6 +54,20 @@ class Status(Enum):
     DONE = 5
 
 
+# class Profile -- this is a collection of data about a person, whether it's biographical, a history of correspondence, or the latest task requested by them. Ask questions like "how's my relationship with X?"
+class Profile(BaseModel):
+    name: str
+    # correspondence: Correspondence
+    pass
+
+
+class Document(BaseModel):
+    name: str
+    path: Optional[str]
+    embedding: Any
+    embedding_collection: Any
+
+
 class Task(BaseModel):
     task: str = Field(description="The task, i.e. 'Buy milk at the grocery store'")
     context: Optional[str] = Field(
@@ -62,6 +78,9 @@ class Task(BaseModel):
         description="1-5, from CRITICAL to SOMEDAY", default=Priority.MEDIUM
     )
     tags: set = Field(description="All tags associated with this task.", default=set())
+    id: UUID = Field(
+        description="ID for back-end referencing purposes", default_factory=uuid4
+    )
 
 
 class Project(BaseModel):
