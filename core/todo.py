@@ -171,6 +171,34 @@ def add_todo(todo: str):
     print(f"Added todo: {todo}")
 
 
+def remove_todo(todo: str):
+    """
+    Remove a todo item from the todo list.
+    """
+    with open(todo_path, "r") as f:
+        todos = f.readlines()
+    with open(todo_path, "w") as f:
+        for line in todos:
+            if line.strip("\n") != todo:
+                f.write(line)
+    print(f"Removed todo: {todo}")
+
+
+def complete_todo(todo: str):
+    """
+    Mark a todo item as complete.
+    """
+    with open(todo_path, "r") as f:
+        todos = f.readlines()
+    with open(todo_path, "w") as f:
+        for line in todos:
+            if line.strip("\n") == todo:
+                f.write(f"- [x] {todo}\n")
+            else:
+                f.write(line)
+    print(f"Completed todo: {todo}")
+
+
 def list_todos() -> list[str]:
     """
     List all todo items in the todo list.
