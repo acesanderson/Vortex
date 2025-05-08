@@ -8,11 +8,13 @@ We will use this database for:
 """
 
 from Vortex.database.PGRES_connection import get_db_connection
-from Vortex.core.todo import Task, Project
 from pathlib import Path
 from rich.console import Console
 from typing import Optional
 from uuid import UUID
+from Vortex.core.pydantic_classes import (
+    Task,
+)
 
 console = Console()
 dir_path = Path(__file__).parent
@@ -28,8 +30,10 @@ def create_table():
     - tools_counter (jsonb) - stores a Python Counter object
     """
     query = "CREATE TABLE IF NOT EXISTS tasks (task VARCHAR(255), context TEXT, status INT, priority INT, tags TEXT[], id UUID PRIMARY KEY);"
+    # Enable UUID extension if not already enabled
     with get_db_connection() as conn:
         cursor = conn.cursor()
+        cursor.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
         cursor.execute(query)
         conn.commit()
         console.print("[cyan]Tasks table created successfully.[/cyan]")
@@ -53,8 +57,8 @@ def insert_task(task: Task):
             (
                 task_dict["task"],
                 task_dict["context"],
-                task_dict["status"],
-                task_dict["priority"],
+                task_dict["status"].value,
+                task_dict["priority"].value,
                 list(task_dict["tags"]),
                 task_dict["id"],
             ),
@@ -76,7 +80,7 @@ def get_task_by_id(id: str) -> Optional[Task]:
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT task, context, status, priority, tags FROM tasks WHERE id = %s",
+            "SELECT task, context, status, priority, tags, id FROM tasks WHERE id = %s",
             (id,),
         )
         result = cursor.fetchone()
@@ -105,7 +109,7 @@ def get_all_tasks() -> list[Task]:
     """
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT task, context, status, priority, tags FROM tasks")
+        cursor.execute("SELECT task, context, status, priority, tags, id FROM tasks")
         results = cursor.fetchall()
         tasks = []
         for row in results:
@@ -115,7 +119,7 @@ def get_all_tasks() -> list[Task]:
                 status=row[2],
                 priority=row[3],
                 tags=set(row[4]),
-                id=UUID(row[5]),
+                id=row[5],
             )
             tasks.append(task)
     return tasks

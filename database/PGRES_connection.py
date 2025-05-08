@@ -3,6 +3,7 @@ This module provides a context manager for connecting to a PostgreSQL database.
 """
 
 import psycopg2
+from psycopg2.extras import register_uuid
 from contextlib import contextmanager
 import subprocess
 import os, sys
@@ -40,6 +41,7 @@ def get_db_connection():
         user="bianders",
         password=password,
     )
+    register_uuid()
     try:
         yield connection
     finally:
