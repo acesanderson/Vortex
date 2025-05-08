@@ -13,9 +13,7 @@ from pathlib import Path
 from rich.console import Console
 from typing import Optional
 from uuid import UUID
-from Vortex.core.pydantic_classes import (
-    Task,
-)
+from Vortex.core.pydantic_classes import Task, Status
 
 console = Console()
 dir_path = Path(__file__).parent
@@ -103,6 +101,22 @@ def get_task_by_id(id: str) -> Optional[Task]:
             id=UUID(result[5]),
         )
         return task
+
+
+def change_status(task_id: str | UUID, status: Status):
+    """
+    Change the status of a task.
+    """
+    if not isinstance(status, Status):
+        raise ValueError("Status must be an instance of Status enum")
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE tasks SET status = %s WHERE id = %s",
+            (status.value, str(task_id)),
+        )
+        conn.commit()
+        console.print(f"[green]Task '{task_id}' status changed to {status}.[/green]")
 
 
 def get_all_tasks() -> list[Task]:

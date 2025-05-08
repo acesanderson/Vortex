@@ -4,6 +4,7 @@ One facade for Vortex.core. Leverages argparse.
 
 from Vortex.core.todo import *  # type: ignore
 from Vortex.database.PGRES_tasks import insert_task, get_all_tasks
+from Vortex.display.display import VortexDisplay
 from Vortex.obsidian.obsidian import get_today_doc
 import argparse, sys
 from rich.console import Console
@@ -21,6 +22,8 @@ def VortexCLI():
 
 
 def main():
+    console = Console()
+    display = VortexDisplay(console)
     parser = argparse.ArgumentParser(description="Add a todo item to the todo list.")
     # We want to be able to just type whatever we want without quotes in bash, hence nargs = *.
     parser.add_argument("todo", type=str, nargs="*", help="The todo item to add.")
@@ -39,25 +42,13 @@ def main():
         print("To dos deleted.")
         sys.exit()
     if args.list:
-        todos = list_todos()
-        if todos:
-            print("Todo list:")
-            for todo in todos:
-                print(todo)
-        else:
-            print("No todos found.")
+        display.display_tasks()
     else:
         if args.todo:
             # We want to be able to just type whatever we want without quotes in bash.
             todo = " ".join(args.todo)
             insert_task(Task(task=todo))
-        todos = get_all_tasks()
-        if todos:
-            print("Todo list:")
-            for todo in todos:
-                print("- [ ] " + todo.task)
-        else:
-            print("No todos found.")
+        display.display_tasks()
 
 
 if __name__ == "__main__":

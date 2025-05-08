@@ -6,6 +6,7 @@ from Vortex.database.PGRES_tasks import (
     create_table,
     get_task_by_id,
     get_all_tasks,
+    change_status,
 )
 from Vortex.core.pydantic_classes import (
     Task,
@@ -89,14 +90,17 @@ def parse_task_creation_syntax(input: str) -> Task:
     return task
 
 
-def add_todo(todo: str):
+def add_task(todo: str):
     """
     Add a todo item to the todo list.
     """
     task = parse_task_creation_syntax(todo)
-    _ = task  # Eventually we will save this to a database
+    insert_task(task)
     with open(todo_path, "a") as f:
-        f.write(f"- [ ] {todo}\n")
+        if task.status == Status.DONE:
+            f.write(f"- [x] {task.task}\n")
+        else:
+            f.write(f"- [ ] {task.task}\n")
     print(f"Added todo: {todo}")
 
 
@@ -113,30 +117,35 @@ def remove_todo(todo: str):
     print(f"Removed todo: {todo}")
 
 
-def complete_todo(todo: str):
+def complete_task(task: Task):
     """
     Mark a todo item as complete.
     """
+    # Markdown CRUD
     with open(todo_path, "r") as f:
-        todos = f.readlines()
+        lines = f.readlines()
     with open(todo_path, "w") as f:
-        for line in todos:
-            if line.strip("\n") == todo:
-                f.write(f"- [x] {todo}\n")
+        for line in lines:
+            if line.replace("- [ ] ", "").strip("\n") == task.task:
+                f.write(f"- [x] {task.task}\n")
             else:
                 f.write(line)
-    print(f"Completed todo: {todo}")
+    # Postgres CRUD
+    change_status(task.id, Status.DONE)
+    print(f"Completed todo: {task.task}")
 
 
-def list_todos() -> list[str]:
+def list_todos() -> list[Task]:
     """
     List all todo items in the todo list.
     """
-    if not todo_path.exists():
-        todo_path.touch()
-    with open(todo_path, "r") as f:
-        todos = f.readlines()
-    return [todo.strip() for todo in todos]
+    # if not todo_path.exists():
+    #     todo_path.touch()
+    # with open(todo_path, "r") as f:
+    #     todos = f.readlines()
+    # return [todo.strip() for todo in todos]
+    tasks = get_all_tasks()
+    return tasks
 
 
 if __name__ == "__main__":
