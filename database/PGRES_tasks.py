@@ -8,6 +8,7 @@ We will use this database for:
 """
 
 from Vortex.database.PGRES_connection import get_db_connection
+import psycopg2
 from pathlib import Path
 from rich.console import Console
 from typing import Optional
@@ -29,7 +30,7 @@ def create_table():
     - course_admin_id (int)
     - tools_counter (jsonb) - stores a Python Counter object
     """
-    query = "CREATE TABLE IF NOT EXISTS tasks (task VARCHAR(255), context TEXT, status INT, priority INT, tags TEXT[], id UUID PRIMARY KEY);"
+    query = "CREATE TABLE IF NOT EXISTS tasks (task VARCHAR(255) UNIQUE, context TEXT, status INT, priority INT, tags TEXT[], id UUID PRIMARY KEY);"
     # Enable UUID extension if not already enabled
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -49,22 +50,26 @@ def insert_task(task: Task):
     # Convert Task object to dict
     task_dict = task.model_dump()
 
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO tasks (task, context, status, priority, tags, id) VALUES (%s, %s, %s, %s, %s, %s) "
-            "ON CONFLICT (id) DO UPDATE SET task = EXCLUDED.task;",
-            (
-                task_dict["task"],
-                task_dict["context"],
-                task_dict["status"].value,
-                task_dict["priority"].value,
-                list(task_dict["tags"]),
-                task_dict["id"],
-            ),
-        )
-        conn.commit()
-        console.print(f"[green]Task '{task.task}' saved successfully.[/green]")
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO tasks (task, context, status, priority, tags, id) VALUES (%s, %s, %s, %s, %s, %s) "
+                "ON CONFLICT (id) DO NOTHING;",
+                (
+                    task_dict["task"],
+                    task_dict["context"],
+                    task_dict["status"].value,
+                    task_dict["priority"].value,
+                    list(task_dict["tags"]),
+                    task_dict["id"],
+                ),
+            )
+            conn.commit()
+            console.print(f"[green]Task '{task.task}' saved successfully.[/green]")
+    except psycopg2.errors.UniqueViolation:
+        console.print(f"[green]Task '{task.task}' already in database.[/green]")
+        pass
 
 
 def get_task_by_id(id: str) -> Optional[Task]:

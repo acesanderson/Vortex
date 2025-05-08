@@ -140,6 +140,7 @@ def list_todos() -> list[str]:
 
 
 if __name__ == "__main__":
+    create_table()
     task = Task(task="Get Coursera competitive analysis")
     insert_task(task)
     tasks = get_all_tasks()

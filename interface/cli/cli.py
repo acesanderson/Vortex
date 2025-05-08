@@ -3,7 +3,21 @@ One facade for Vortex.core. Leverages argparse.
 """
 
 from Vortex.core.todo import *  # type: ignore
+from Vortex.database.PGRES_tasks import insert_task, get_all_tasks
+from Vortex.obsidian.obsidian import get_today_doc
 import argparse, sys
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.table import Table
+
+
+def VortexCLI():
+
+    def __init__(self):
+        self.todo_path = get_today_doc()
+        self.todos = list_todos()
+
+    pass
 
 
 def main():
@@ -11,11 +25,14 @@ def main():
     # We want to be able to just type whatever we want without quotes in bash, hence nargs = *.
     parser.add_argument("todo", type=str, nargs="*", help="The todo item to add.")
     parser.add_argument(
+        "-c", "--context", type=str, help="The context for the todo item."
+    )
+    parser.add_argument(
         "-l", "--list", action="store_true", help="List all todo items."
     )
-    parser.add_argument("-c", "--clear", action="store_true", help="Clear the todos.")
+    parser.add_argument("-w", "--wipe", action="store_true", help="Clear the todos.")
     args = parser.parse_args()
-    if args.clear:
+    if args.wipe:
         if todo_path.exists():
             todo_path.unlink()
         todo_path.touch()
@@ -33,12 +50,12 @@ def main():
         if args.todo:
             # We want to be able to just type whatever we want without quotes in bash.
             todo = " ".join(args.todo)
-            add_todo(todo)
-        todos = list_todos()
+            insert_task(Task(task=todo))
+        todos = get_all_tasks()
         if todos:
             print("Todo list:")
             for todo in todos:
-                print(todo)
+                print("- [ ] " + todo.task)
         else:
             print("No todos found.")
 
