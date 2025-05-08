@@ -3,52 +3,46 @@ One facade for Vortex.core. Leverages argparse.
 """
 
 from Vortex.core.todo import *  # type: ignore
-from Vortex.database.PGRES_tasks import insert_task, get_all_tasks
 from Vortex.display.display import VortexDisplay
 from Vortex.obsidian.obsidian import get_today_doc
-import argparse, sys
 from rich.console import Console
-from rich.markdown import Markdown
-from rich.table import Table
+from Chain import CLI, arg
 
 
-def VortexCLI():
+class VortexCLI(CLI):
 
-    def __init__(self):
+    def __init__(self, name: str = "VortexCLI"):
+        super().__init__(name=name)
         self.todo_path = get_today_doc()
-        self.todos = list_todos()
+        self.console = Console()
+        self.display = VortexDisplay(self.console)
 
-    pass
+    @arg("")
+    def arg_insert(self, task):
+        """
+        Insert a task into the todo list.
+        """
+        add_task(task)
+        self.display.display_tasks()
+
+    @arg("-l")
+    def arg_list(self):
+        """
+        List all tasks in the todo list.
+        """
+        self.display.display_tasks()
+
+    @arg("-c")
+    def arg_context(self, context: str):
+        """
+        Set the context for the todo list.
+        """
+        pass
 
 
 def main():
-    console = Console()
-    display = VortexDisplay(console)
-    parser = argparse.ArgumentParser(description="Add a todo item to the todo list.")
-    # We want to be able to just type whatever we want without quotes in bash, hence nargs = *.
-    parser.add_argument("todo", type=str, nargs="*", help="The todo item to add.")
-    parser.add_argument(
-        "-c", "--context", type=str, help="The context for the todo item."
-    )
-    parser.add_argument(
-        "-l", "--list", action="store_true", help="List all todo items."
-    )
-    parser.add_argument("-w", "--wipe", action="store_true", help="Clear the todos.")
-    args = parser.parse_args()
-    if args.wipe:
-        if todo_path.exists():
-            todo_path.unlink()
-        todo_path.touch()
-        print("To dos deleted.")
-        sys.exit()
-    if args.list:
-        display.display_tasks()
-    else:
-        if args.todo:
-            # We want to be able to just type whatever we want without quotes in bash.
-            todo = " ".join(args.todo)
-            insert_task(Task(task=todo))
-        display.display_tasks()
+    cli = VortexCLI()
+    cli.run()
 
 
 if __name__ == "__main__":
