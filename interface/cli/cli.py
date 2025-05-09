@@ -7,11 +7,14 @@ from Vortex.display.display import VortexDisplay
 from Vortex.obsidian.obsidian import get_today_doc
 from rich.console import Console
 from Chain import CLI, arg
+from pathlib import Path
 
 
 class VortexCLI(CLI):
 
-    def __init__(self, name: str = "VortexCLI"):
+    def __init__(
+        self, name: str = "VortexCLI", todo_file: str | Path = get_today_doc()
+    ):
         super().__init__(name=name)
         self.todo_path = get_today_doc()
         self.console = Console()

@@ -155,6 +155,20 @@ def get_task_dict() -> dict[UUID, str]:
         return {UUID(row[0]): row[1] for row in results}
 
 
+def delete_task(task_id: str | UUID):
+    """
+    Delete a task from the database.
+
+    Args:
+        task_id: The ID of the task to delete
+    """
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM tasks WHERE id = %s", (str(task_id),))
+        conn.commit()
+        console.print(f"[green]Task '{task_id}' deleted successfully.[/green]")
+
+
 def clear_table():
     """
     Clear all data from the tools table.
