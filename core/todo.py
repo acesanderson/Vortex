@@ -1,14 +1,6 @@
 from pathlib import Path
 from uuid import uuid4
 import re
-from Vortex.database.PGRES_tasks import (
-    insert_task,
-    delete_task,
-    create_table,
-    delete_table,
-    get_all_tasks,
-    change_status,
-)
 from Vortex.core.pydantic_classes import (
     Task,
     Priority,
@@ -97,7 +89,6 @@ class Vortex:
         Add a todo item to the todo list.
         """
         task = self.parse_task_creation_syntax(todo)
-        insert_task(task)
         with open(self.todo_path, "a") as f:
             if task.status == Status.DONE:
                 f.write(f"- [x] {task.task}\n")
@@ -116,7 +107,6 @@ class Vortex:
                 if line.strip("\n") != todo:
                     f.write(line)
         # Postgres CRUD
-        delete_task(todo)
         print(f"Removed todo: {todo}")
 
     def complete_task(self, task: Task):
@@ -133,20 +123,12 @@ class Vortex:
                 else:
                     f.write(line)
         # Postgres CRUD
-        change_status(task.id, Status.DONE)
         print(f"Completed todo: {task.task}")
 
-    def list_todos(self) -> list[Task]:
+    def list_todos(self) -> list[str]:
         """
         List all todo items in the todo list.
         """
-        tasks = get_all_tasks()
-        return tasks
-
-
-if __name__ == "__main__":
-    create_table()
-    task = Task(task="Get Coursera competitive analysis")
-    insert_task(task)
-    tasks = get_all_tasks()
-    print(tasks)
+        with open(self.todo_path, "r") as f:
+            todos = f.readlines()
+        return todos

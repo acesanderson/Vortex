@@ -16,5 +16,5 @@ class VortexDisplay:
         tasks = list_todos()
         for index, task in enumerate(tasks):
             self.console.print(
-                f"[bold yellow]{index+1}[/bold yellow] [green]{task.task}[/green] - {task.status} - {task.priority}"
+                f"[bold white] - [ ] [/bold white][bold yellow]{index+1}[/bold yellow] [green]{task.task}[/green] - {task.status} - {task.priority}"
             )
